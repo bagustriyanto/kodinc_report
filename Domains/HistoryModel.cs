@@ -7,14 +7,14 @@ namespace ReportService.Domains
 {
     public class HistoryModel
     {
-        public Guid id { get; set; }
-        public string file_name { get; set; }
-        public string file_path { get; set; }
-        public string type { get; set; } = "UPLOAD";
-        public DateTime start_time { get; set; }
-        public DateTime finish_time { get; set; }
-        public string status { get; set; } = "INITIALIZE";
-        public string remark { get; set; }
-        public DateTime created_at { get; set; }
+        public Guid Id { get; set; }
+        public string FileName { get; set; }
+        public string FilePath { get; set; }
+        public string Type { get; set; } = "UPLOAD";
+        public DateTime StartTime { get; set; }
+        public DateTime FinishTime { get; set; }
+        public string Status { get; set; } = "INITIALIZE";
+        public string Remark { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

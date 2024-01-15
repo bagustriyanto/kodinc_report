@@ -7,9 +7,9 @@ namespace ReportService.Domains
 {
     public class FileHistoryModel
     {
-        public Guid id { get; set; }
-        public string file_name { get; set; }
-        public string file_timestamp { get; set; }
-        public string created_at { get; set; }
+        public Guid Id { get; set; }
+        public string FileName { get; set; }
+        public string FileTimestamp { get; set; }
+        public string CreatedAt { get; set; }
     }
 }

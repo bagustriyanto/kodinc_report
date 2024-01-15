@@ -1,10 +1,16 @@
+using Microsoft.EntityFrameworkCore;
 using NLog.Web;
+using ReportService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.AddDbContextPool<ApplicationDbContext>(optionsAction: opt =>
+{
+    opt.UseMySql(builder.Configuration.GetConnectionString("MariaDB"), new MySqlServerVersion(new Version(10, 11, 16)));
+});
 
 builder.Host.UseNLog();
 

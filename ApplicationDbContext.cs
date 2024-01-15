@@ -9,10 +9,15 @@ namespace ReportService
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 
-        DbSet<FileHistoryModel> FileHistoryModel { get; set; }
+        DbSet<FileHistoryModel> FileHistoryModels { get; set; }
+        DbSet<HistoryModel> HistoryModels { get; set; }
+        DbSet<MKVGModel> MKVGModels { get; set; }
+        DbSet<BKPFModel> BKPFModels { get; set; }
+        DbSet<BSEGModel> BSEGModels { get; set; }
+        DbSet<F10Model> F10Models { get; set; }
     }
 }
