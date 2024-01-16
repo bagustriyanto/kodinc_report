@@ -13,11 +13,11 @@ namespace ReportService
         {
         }
 
-        DbSet<FileHistoryModel> FileHistoryModels { get; set; }
-        DbSet<HistoryModel> HistoryModels { get; set; }
-        DbSet<MKVGModel> MKVGModels { get; set; }
-        DbSet<BKPFModel> BKPFModels { get; set; }
-        DbSet<BSEGModel> BSEGModels { get; set; }
-        DbSet<F10Model> F10Models { get; set; }
+        public virtual DbSet<FileHistoryModel> FileHistoryModels { get; set; }
+        public virtual DbSet<HistoryModel> HistoryModels { get; set; }
+        public virtual DbSet<MKVGModel> MKVGModels { get; set; }
+        public virtual DbSet<BKPFModel> BKPFModels { get; set; }
+        public virtual DbSet<BSEGModel> BSEGModels { get; set; }
+        public virtual DbSet<F10Model> F10Models { get; set; }
     }
 }
