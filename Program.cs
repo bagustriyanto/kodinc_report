@@ -25,6 +25,8 @@ builder.Services.AddDbContextPool<ApplicationDbContext>(optionsAction: opt =>
 
 builder.Services.AddSingleton<AppLogger>();
 builder.Services.AddScoped<IFileHistoryRepository, FileHistoryRepository>();
+builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddHostedService<PopulateFileService>();
 
 var app = builder.Build();

@@ -16,9 +16,9 @@ namespace ReportService.Repositories
         {
             this.applicationDbContext = applicationDbContext;
         }
-        public async Task Create(FileHistoryModel model)
+        public async Task Create(FileHistoryModel model, CancellationToken cancellationToken)
         {
-            await applicationDbContext.FileHistoryModels.AddAsync(model);
+            await applicationDbContext.FileHistoryModels.AddAsync(model, cancellationToken);
         }
 
         public Task<List<FileHistoryModel>> GetFileHistory()
@@ -26,14 +26,9 @@ namespace ReportService.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<FileHistoryModel> GetFileHistoryByName(string filename)
+        public async Task<FileHistoryModel> GetFileHistoryByName(string filename, CancellationToken cancellationToken)
         {
-            return await applicationDbContext.FileHistoryModels.Where(w => w.FileName.Equals(filename)).FirstOrDefaultAsync();
-        }
-
-        public async Task SaveAsync()
-        {
-            await applicationDbContext.SaveChangesAsync();
+            return await applicationDbContext.FileHistoryModels.Where(w => w.FileName.Equals(filename)).FirstOrDefaultAsync(cancellationToken);
         }
     }
 }

@@ -12,14 +12,14 @@ namespace ReportService.Services
         private readonly IConfiguration configuration;
         private readonly AppLogger logger;
         private readonly IServiceScopeFactory serviceScopeFactory;
-        private readonly IFileHistoryRepository fileHistoryRepository;
+        private readonly IUnitOfWork unitOfWork;
         public PopulateFileService(IConfiguration configuration, AppLogger logger, IServiceScopeFactory serviceScopeFactory)
         {
             this.configuration = configuration;
             this.logger = logger;
             this.serviceScopeFactory = serviceScopeFactory;
 
-            fileHistoryRepository = serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<IFileHistoryRepository>();
+            unitOfWork = serviceScopeFactory.CreateScope().ServiceProvider.GetRequiredService<IUnitOfWork>();
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -33,21 +33,35 @@ namespace ReportService.Services
                         foreach (var file in files)
                         {
                             FileInfo fileInfo = new FileInfo(file);
-                            var fileExists = await fileHistoryRepository.GetFileHistoryByName(fileInfo.Name);
+                            var fileExists = await unitOfWork.fileHistoryRepository.GetFileHistoryByName(fileInfo.Name, cancellationToken);
                             if (fileExists is null)
                             {
+                                DateTime currentTimestamp = DateTime.Now;
+
                                 FileHistoryModel fileHistoryModel = new FileHistoryModel()
                                 {
-                                    CreatedAt = DateTime.Now,
+                                    CreatedAt = currentTimestamp,
                                     FileName = fileInfo.Name,
                                     FileTimestamp = fileInfo.Name.Split("_")[1].ToLower().Replace(".xlsx", "")
                                 };
                                 Domains.FileHistoryModel map = fileHistoryModel.MapToDomain();
                                 map.Id = Guid.NewGuid();
 
-                                await fileHistoryRepository.Create(map);
-                                await fileHistoryRepository.SaveAsync();
-                                logger.Info(nameof(PopulateFileService), file, new { lastWritte = fileInfo.LastWriteTime, createdat = fileInfo.CreationTime });
+                                await unitOfWork.fileHistoryRepository.Create(map, cancellationToken);
+
+                                HistoryModel historyModel = new HistoryModel()
+                                {
+                                    FileName = fileInfo.Name,
+                                    FilePath = file,
+                                    CreatedAt = currentTimestamp
+                                };
+                                var historyMap = historyModel.MapToDomain();
+                                historyMap.Id = Guid.NewGuid();
+
+                                await unitOfWork.historyRepository.Create(historyMap, cancellationToken);
+
+                                await unitOfWork.Save();
+                                logger.Info(nameof(PopulateFileService), "Populate file success", new { file = fileInfo.FullName });
                             }
                         }
                         await Task.Delay(1000);

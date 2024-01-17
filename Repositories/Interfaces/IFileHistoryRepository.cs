@@ -8,9 +8,8 @@ namespace ReportService.Repositories.Interfaces
 {
     public interface IFileHistoryRepository
     {
-        Task Create(FileHistoryModel model);
+        Task Create(FileHistoryModel model, CancellationToken cancellationToken);
         Task<List<FileHistoryModel>> GetFileHistory();
-        Task<FileHistoryModel> GetFileHistoryByName(string filename);
-        Task SaveAsync();
+        Task<FileHistoryModel> GetFileHistoryByName(string filename, CancellationToken cancellationToken);
     }
 }
