@@ -6,6 +6,7 @@ namespace ReportService.Repositories.Interfaces
     {
         IFileHistoryRepository fileHistoryRepository { get; }
         IHistoryRepository historyRepository { get; }
+        IBKPFRepository bkpfRepository { get; }
         Task Save();
     }
 }

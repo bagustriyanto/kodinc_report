@@ -23,11 +23,19 @@ builder.Services.AddDbContextPool<ApplicationDbContext>(optionsAction: opt =>
     opt.UseMySql(builder.Configuration.GetConnectionString("MariaDB"), new MySqlServerVersion(new Version(10, 11, 16)));
 });
 
+// Register Singleton service
 builder.Services.AddSingleton<AppLogger>();
+builder.Services.AddSingleton<ICacheRepository, CacheRepository>();
+
+// Register Scoped service
 builder.Services.AddScoped<IFileHistoryRepository, FileHistoryRepository>();
 builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
+builder.Services.AddScoped<IBKPFRepository, BKPFRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Register Hosted Service
 builder.Services.AddHostedService<PopulateFileService>();
+builder.Services.AddHostedService<PopulateBSEGQueueService>();
 
 var app = builder.Build();
 

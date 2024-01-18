@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Domain = ReportService.Domains;
 
-namespace ReportService.Domains
+namespace ReportService.Models
 {
     public class BKPFModel
     {
@@ -106,8 +103,111 @@ namespace ReportService.Domains
         public string FileNumber { get; set; }
         public string IF { get; set; }
         public string InterestCalcDate { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        public string SourceFile { get; set; }
+
+        public Domain.BKPFModel MapToDomain()
+        {
+            return new Domain.BKPFModel
+            {
+                Id = this.Id,
+                GI = this.GI,
+                CoCd = this.CoCd,
+                DocumentNo = this.DocumentNo,
+                Year = this.Year,
+                DocType = this.DocType,
+                DocDate = this.DocDate,
+                PostingDate = this.PostingDate,
+                Posting = this.Posting,
+                EntryDate = this.EntryDate,
+                Time = this.Time,
+                Changed = this.Changed,
+                LastUpdate = this.LastUpdate,
+                TransIDDate = this.TransIDDate,
+                Username = this.Username,
+                TCode = this.TCode,
+                CrossCCodeNo = this.CrossCCodeNo,
+                Reference = this.Reference,
+                RecEntDoc = this.RecEntDoc,
+                RevWith = this.RevWith,
+                DocHeaderText = this.DocHeaderText,
+                Currency = this.Currency,
+                ExcRate = this.ExcRate,
+                GroupCurrency = this.GroupCurrency,
+                GroupExcRate = this.GroupExcRate,
+                S = this.S,
+                NetDocType = this.NetDocType,
+                UnDelCts = this.UnDelCts,
+                I = this.I,
+                Tran = this.Tran,
+                SessionName = this.SessionName,
+                DocNameArchiveSys = this.DocNameArchiveSys,
+                ExtractID = this.ExtractID,
+                DT = this.DT,
+                RefProc = this.RefProc,
+                ObjectKey = this.ObjectKey,
+                FMA = this.FMA,
+                LCurr = this.LCurr,
+                LCurr2 = this.LCurr2,
+                LCurr3 = this.LCurr3,
+                ExcRate2 = this.ExcRate2,
+                ExcRate3 = this.ExcRate3,
+                SC = this.SC,
+                SC2 = this.SC2,
+                Translation = this.Translation,
+                TranslationDate = this.TranslationDate,
+                ReversalFlag = this.ReversalFlag,
+                ReversalDate = this.ReversalDate,
+                Calculate = this.Calculate,
+                CT = this.CT,
+                CT2 = this.CT2,
+                ERTy = this.ERTy,
+                ERTy2 = this.ERTy2,
+                CalculateTax = this.CalculateTax,
+                SCCd = this.SCCd,
+                TaxDetailChanged = this.TaxDetailChanged,
+                StatusDataTransferNextRelease = this.StatusDataTransferNextRelease,
+                LogSystem = this.LogSystem,
+                TaxRate = this.TaxRate,
+                TaxRateLC = this.TaxRateLC,
+                RequestNo = this.RequestNo,
+                CustomerBillBeforeDueDate = this.CustomerBillBeforeDueDate,
+                RevReas = this.RevReas,
+                ParkedBy = this.ParkedBy,
+                ParkingDate = this.ParkingDate,
+                Time2 = this.Time2,
+                ParkedWith = this.ParkedWith,
+                BranchNo = this.BranchNo,
+                Pages = this.Pages,
+                DisDoc = this.DisDoc,
+                RefKey1 = this.RefKey1,
+                RefKey2 = this.RefKey2,
+                Reversal = this.Reversal,
+                IRDate = this.IRDate,
+                Ld = this.Ld,
+                Ledger = this.Ledger,
+                Mand = this.Mand,
+                AltRefNumber = this.AltRefNumber,
+                RepDate = this.RepDate,
+                DocType2 = this.DocType2,
+                SplitPosting = this.SplitPosting,
+                Cash = this.Cash,
+                FollowOnDocIndicator = this.FollowOnDocIndicator,
+                Reorg = this.Reorg,
+                Subs = this.Subs,
+                ERTy3 = this.ERTy3,
+                MarketDateExcRate = this.MarketDateExcRate,
+                MarketData = this.MarketData,
+                MarketData2 = this.MarketData2,
+                DocOriMultiCurrency = this.DocOriMultiCurrency,
+                ResubmissionDate = this.ResubmissionDate,
+                DocStatus = this.DocStatus,
+                RT = this.RT,
+                Reason = this.Reason,
+                Region = this.Region,
+                S2 = this.S2,
+                FileNumber = this.FileNumber,
+                IF = this.IF,
+                InterestCalcDate = this.InterestCalcDate
+            };
+        }
     }
 }
