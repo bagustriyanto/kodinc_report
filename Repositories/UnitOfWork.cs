@@ -10,16 +10,18 @@ namespace ReportService.Repositories
     {
         private readonly ApplicationDbContext applicationDbContext;
         public UnitOfWork(ApplicationDbContext applicationDbContext, IFileHistoryRepository _fileHistoryRepository, IHistoryRepository _historyRepository,
-        IBKPFRepository bkpfRepository)
+        IBKPFRepository bkpfRepository, IBSEGRepository bsegRepository)
         {
             this.applicationDbContext = applicationDbContext;
             fileHistoryRepository = _fileHistoryRepository;
             historyRepository = _historyRepository;
             this.bkpfRepository = bkpfRepository;
+            this.bsegRepository = bsegRepository;
         }
         public IFileHistoryRepository fileHistoryRepository { get; }
         public IHistoryRepository historyRepository { get; }
         public IBKPFRepository bkpfRepository { get; }
+        public IBSEGRepository bsegRepository { get; }
 
         public void Dispose()
         {

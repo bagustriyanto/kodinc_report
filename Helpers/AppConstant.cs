@@ -10,5 +10,6 @@ namespace ReportService.Helpers
         public const string INITIALIZE = "initialize";
         public const string PROGRESS = "in-progress";
         public const string FINISH = "finish";
+        public const string FAILED = "failed";
     }
 }

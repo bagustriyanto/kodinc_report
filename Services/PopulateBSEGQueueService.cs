@@ -32,7 +32,7 @@ namespace ReportService.Services
                     {
                         var historyCache = cacheRepository.Get("UploadHistory");
                         HistoryModel historyData = null;
-                        var historyInProgressDataDb = await unitOfWork.historyRepository.GetLastHistory(AppConstant.PROGRESS, cancellationToken);
+                        var historyInProgressOrFailedData = await unitOfWork.historyRepository.GetByFilter(m => m.Status.Equals(AppConstant.PROGRESS) || m.Status.Equals(AppConstant.FAILED), cancellationToken);
 
                         if (!string.IsNullOrEmpty(historyCache))
                         {
@@ -42,7 +42,7 @@ namespace ReportService.Services
                         {
                             var historyDataDb = await unitOfWork.historyRepository.GetLastHistory(AppConstant.INITIALIZE, cancellationToken);
 
-                            if (historyDataDb is not null && historyInProgressDataDb is null)
+                            if (historyDataDb is not null && historyInProgressOrFailedData is null)
                             {
                                 historyData = new HistoryModel();
                                 historyData = historyData.MapFromDomain(historyDataDb);
@@ -51,7 +51,7 @@ namespace ReportService.Services
                             }
                         }
 
-                        if (historyData is not null && historyInProgressDataDb is null)
+                        if (historyData is not null && historyInProgressOrFailedData is null)
                         {
                             // update upload history to processing
                             var existingHistory = await unitOfWork.historyRepository.GetById(historyData.Id);
@@ -86,13 +86,17 @@ namespace ReportService.Services
 
                                             if (!loop_continue)
                                             {
-                                                // update to failed
                                                 break;
                                             }
                                         }
                                         else if (row is not null && historyData.FileName.Contains("BSEG"))
                                         {
+                                            loop_continue = await ProcessingBSEGFile(row, historyData.FileName, cancellationToken);
 
+                                            if (!loop_continue)
+                                            {
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -100,6 +104,11 @@ namespace ReportService.Services
                                 workbook.Close();
 
                                 existingHistory.Status = AppConstant.FINISH;
+                                if (!loop_continue)
+                                {
+                                    existingHistory.Status = AppConstant.FAILED;
+                                }
+
                                 existingHistory.FinishTime = DateTime.Now;
                                 unitOfWork.historyRepository.Update(existingHistory);
                                 await unitOfWork.Save();
@@ -249,12 +258,149 @@ namespace ReportService.Services
 
                     await unitOfWork.Save();
 
-                    logger.Info(nameof(PopulateBSEGQueueService), "Row data", JsonConvert.SerializeObject(model));
+                    logger.Info(nameof(PopulateBSEGQueueService), "BKPF Row data", JsonConvert.SerializeObject(model));
                 }
                 return true;
             }
             catch (Exception ex)
             {
+                logger.Error(nameof(PopulateBSEGQueueService), ex.Message, ex);
+
+                return false;
+            }
+        }
+
+        private async Task<bool> ProcessingBSEGFile(IRow row, string sourceFile, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (row is not null)
+                {
+                    BSEGModel model = new BSEGModel();
+                    model.Cl = row.GetCell(0).StringCellValue.Replace("'", "");
+                    model.CoCd = row.GetCell(1).StringCellValue;
+                    model.DocumentNo = row.GetCell(2).StringCellValue.Replace("'", "");
+                    model.Year = int.Parse(row.GetCell(3).StringCellValue.Replace("'", ""));
+                    model.Itm = row.GetCell(4).StringCellValue.Replace("'", "");
+                    model.LID = row.GetCell(5) != null ? row.GetCell(5).StringCellValue : "";
+                    model.Clearing = row.GetCell(6).DateCellValue.ToString("yyyy-MM-dd");
+                    model.ClgEntDate = row.GetCell(7).DateCellValue;
+                    model.ClrngDoc = row.GetCell(8).StringCellValue.Replace("'", "");
+                    model.PK = int.Parse(row.GetCell(9).StringCellValue.Replace("'", ""));
+                    model.AccTy = row.GetCell(10).StringCellValue;
+                    model.SG = row.GetCell(11) != null ? row.GetCell(11).StringCellValue : "";
+                    model.TransType = row.GetCell(12) != null ? row.GetCell(12).StringCellValue : "";
+                    model.TrgtSpecialGLInd = row.GetCell(13) != null ? row.GetCell(13).StringCellValue : "";
+                    model.DC = row.GetCell(14).StringCellValue;
+                    model.BusA = row.GetCell(15) != null ? row.GetCell(15).StringCellValue : "";
+                    model.TPBA = row.GetCell(16) != null ? row.GetCell(16).StringCellValue : "";
+                    model.Tx = row.GetCell(17) != null ? row.GetCell(17).StringCellValue : "";
+                    model.WT = row.GetCell(18) != null ? row.GetCell(18).StringCellValue : "";
+                    model.LocCurrAmount = decimal.Parse(row.GetCell(19).NumericCellValue.ToString());
+                    model.Amount = decimal.Parse(row.GetCell(20).NumericCellValue.ToString());
+                    model.OrigReduction = decimal.Parse(row.GetCell(21).NumericCellValue.ToString());
+                    model.GeneralLedgerAmount = decimal.Parse(row.GetCell(22).NumericCellValue.ToString());
+                    model.Curr = row.GetCell(23).StringCellValue;
+                    model.OriginalTaxBaseAmount = decimal.Parse(row.GetCell(24).NumericCellValue.ToString());
+                    model.LCTaxAmount = decimal.Parse(row.GetCell(25).NumericCellValue.ToString());
+                    model.TaxAmount = decimal.Parse(row.GetCell(26).NumericCellValue.ToString());
+                    model.LCTaxBaseAmount = decimal.Parse(row.GetCell(27).NumericCellValue.ToString());
+                    model.TaxBase = decimal.Parse(row.GetCell(28).NumericCellValue.ToString());
+                    model.LCProvision = decimal.Parse(row.GetCell(29).NumericCellValue.ToString());
+                    model.AdditionalTax = decimal.Parse(row.GetCell(30).NumericCellValue.ToString());
+                    model.CashDiscount = row.GetCell(31) != null ? decimal.Parse(row.GetCell(31).StringCellValue) : 0;
+                    model.VersionNumberComponent = row.GetCell(32) != null ? int.Parse(row.GetCell(32).StringCellValue) : 0;
+                    model.Typ = row.GetCell(33) != null ? row.GetCell(33).StringCellValue : "";
+                    model.GrI = row.GetCell(32).StringCellValue;
+                    model.Trs = row.GetCell(33) != null ? row.GetCell(33).StringCellValue : "";
+                    model.WTaxBase = decimal.Parse(row.GetCell(34).NumericCellValue.ToString());
+                    model.HedgedER = decimal.Parse(row.GetCell(35).NumericCellValue.ToString());
+                    model.HedgedAmount = decimal.Parse(row.GetCell(36).NumericCellValue.ToString());
+                    model.ValuationDifference = decimal.Parse(row.GetCell(37).NumericCellValue.ToString());
+                    model.ValuationDifference2 = decimal.Parse(row.GetCell(38).NumericCellValue.ToString());
+                    model.ValueDate = row.GetCell(39) != null ? row.GetCell(39).DateCellValue : null;
+                    model.Assignment = row.GetCell(40).StringCellValue;
+                    model.Text = row.GetCell(41) != null ? row.GetCell(41).StringCellValue : "";
+                    model.IntBlock = row.GetCell(42) != null ? row.GetCell(42).StringCellValue : "";
+                    model.TrPrt = row.GetCell(43) != null ? row.GetCell(43).StringCellValue : "";
+                    model.TTy = row.GetCell(44) != null ? row.GetCell(44).StringCellValue : "";
+                    model.GroupAcct = row.GetCell(45) != null ? row.GetCell(45).StringCellValue : "";
+                    model.TrTy = row.GetCell(46) != null ? row.GetCell(46).StringCellValue : "";
+                    model.Level = row.GetCell(47) != null ? row.GetCell(47).StringCellValue : "";
+                    model.PlanGrp = row.GetCell(48) != null ? row.GetCell(48).StringCellValue : "";
+                    model.PlannedAmount = decimal.Parse(row.GetCell(49).NumericCellValue.ToString());
+                    model.PlanDate = row.GetCell(50) != null ? row.GetCell(50).DateCellValue : null;
+                    model.FBI = row.GetCell(51) != null ? row.GetCell(51).StringCellValue.Replace("'", "") : "";
+                    model.COAr = row.GetCell(52) != null ? row.GetCell(52).StringCellValue : "";
+                    model.CostCtr = row.GetCell(53) != null ? row.GetCell(53).StringCellValue : "";
+                    model.NotInUse = row.GetCell(54) != null ? row.GetCell(54).StringCellValue : "";
+                    model.Order = row.GetCell(55) != null ? row.GetCell(55).StringCellValue : "";
+                    model.BillDoc = row.GetCell(56) != null ? row.GetCell(56).StringCellValue : "";
+                    model.SalesDoc = row.GetCell(57) != null ? row.GetCell(57).StringCellValue : "";
+                    model.Item = row.GetCell(58) != null ? row.GetCell(58).StringCellValue.Replace("'", "") : "";
+                    model.SLNo = row.GetCell(59) != null ? row.GetCell(59).StringCellValue.Replace("'", "") : "";
+                    model.Asset = row.GetCell(60) != null ? row.GetCell(60).StringCellValue.Replace("'", "") : "";
+                    model.SNo = row.GetCell(61) != null ? row.GetCell(61).StringCellValue.Replace("'", "") : "";
+                    model.TTyAsset = row.GetCell(62) != null ? row.GetCell(62).StringCellValue.Replace("'", "") : "";
+                    model.AssetValDate = row.GetCell(63) != null ? row.GetCell(63).DateCellValue : null;
+                    model.PersNo = row.GetCell(64) != null ? row.GetCell(64).StringCellValue.Replace("'", "") : "";
+                    model.Sl = row.GetCell(65) != null ? row.GetCell(65).StringCellValue.Replace("'", "") : "";
+                    model.Indicator = row.GetCell(66) != null ? row.GetCell(66).StringCellValue.Replace("'", "") : "";
+                    model.LineItemDisplayPossible = row.GetCell(67) != null ? row.GetCell(67).StringCellValue.Replace("'", "") == "X" ? true : false : false;
+                    model.OIManagement = row.GetCell(68) != null ? row.GetCell(68).StringCellValue.Replace("'", "") : "";
+                    model.IndividSet = row.GetCell(69) != null ? row.GetCell(69).StringCellValue.Replace("'", "") : "";
+                    model.CS = row.GetCell(70) != null ? row.GetCell(70).StringCellValue.Replace("'", "") : "";
+                    model.OS = row.GetCell(71) != null ? row.GetCell(71).StringCellValue.Replace("'", "") : "";
+                    model.SP = row.GetCell(72) != null ? row.GetCell(72).StringCellValue.Replace("'", "") : "";
+                    model.PS = row.GetCell(73) != null ? row.GetCell(73).StringCellValue.Replace("'", "") : "";
+                    model.XFAKT = row.GetCell(74) != null ? row.GetCell(74).StringCellValue.Replace("'", "") : "";
+                    model.XUMAN = row.GetCell(75) != null ? row.GetCell(75).StringCellValue.Replace("'", "") : "";
+                    model.XANET = row.GetCell(76) != null ? row.GetCell(76).StringCellValue.Replace("'", "") : "";
+                    model.WD = row.GetCell(77) != null ? row.GetCell(77).StringCellValue.Replace("'", "") : "";
+                    model.InvestmentID = row.GetCell(79) != null ? row.GetCell(79).StringCellValue.Replace("'", "") : "";
+                    model.Dis = row.GetCell(80) != null ? row.GetCell(80).StringCellValue.Replace("'", "") : "";
+                    model.Aut = row.GetCell(81) != null ? row.GetCell(81).StringCellValue.Replace("'", "") : "";
+                    model.ItemsCannotBeCopiedIndicator = row.GetCell(82) != null ? row.GetCell(82).StringCellValue.Replace("'", "") : "";
+                    model.Payment = row.GetCell(83) != null ? row.GetCell(83).StringCellValue.Replace("'", "") : "";
+                    model.GLAcct = row.GetCell(84) != null ? row.GetCell(84).StringCellValue.Replace("'", "") : "";
+                    model.GLCustomer = row.GetCell(85) != null ? row.GetCell(85).StringCellValue.Replace("'", "") : "";
+                    model.GLSupplier = row.GetCell(86) != null ? row.GetCell(86).StringCellValue.Replace("'", "") : "";
+                    model.Branch = row.GetCell(87) != null ? row.GetCell(87).StringCellValue.Replace("'", "") : "";
+                    model.BSAcct = row.GetCell(88) != null ? row.GetCell(88).StringCellValue.Replace("'", "") : "";
+                    model.AT = row.GetCell(89) != null ? row.GetCell(89).StringCellValue.Replace("'", "") : "";
+                    model.SpGLAssignment = row.GetCell(90) != null ? row.GetCell(90).StringCellValue.Replace("'", "") : "";
+                    model.BlineDate = row.GetCell(91) != null ? row.GetCell(91).DateCellValue : null;
+                    model.PayT = row.GetCell(92) != null ? row.GetCell(92).StringCellValue.Replace("'", "") : "";
+                    model.Day1 = row.GetCell(93).NumericCellValue.ToString();
+                    model.Day2 = row.GetCell(94).NumericCellValue.ToString();
+                    model.Net = row.GetCell(95).NumericCellValue.ToString();
+
+                    var checkRowExist = await unitOfWork.bsegRepository.GetOneByFilter(w => w.DocumentNo.Contains(model.DocumentNo), cancellationToken);
+
+                    if (checkRowExist is null)
+                    {
+                        var map = model.MapToDomain();
+                        map.CreatedAt = DateTime.Now;
+                        map.SourceFile = sourceFile;
+                        await unitOfWork.bsegRepository.Create(map, cancellationToken);
+                    }
+                    else
+                    {
+                        checkRowExist.UpdatedAt = DateTime.Now;
+                        checkRowExist.SourceFile = sourceFile;
+                        unitOfWork.bsegRepository.Update(checkRowExist);
+                    }
+
+                    await unitOfWork.Save();
+
+                    logger.Info(nameof(PopulateBSEGQueueService), "BSEG Row data", JsonConvert.SerializeObject(model));
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+
                 logger.Error(nameof(PopulateBSEGQueueService), ex.Message, ex);
 
                 return false;
