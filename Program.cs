@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using NLog.Web;
 using ReportService;
@@ -10,6 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<JsonOptions>(opt =>
+{
+    opt.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    opt.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    opt.SerializerOptions.PropertyNameCaseInsensitive = false;
+});
 
 // NLog: Setup NLog for Dependency injection
 builder.Logging.ClearProviders();
@@ -31,6 +41,7 @@ builder.Services.AddSingleton<ICacheRepository, CacheRepository>();
 builder.Services.AddScoped<IFileHistoryRepository, FileHistoryRepository>();
 builder.Services.AddScoped<IHistoryRepository, HistoryRepository>();
 builder.Services.AddScoped<IBKPFRepository, BKPFRepository>();
+builder.Services.AddScoped<IBSEGRepository, BSEGRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Register Hosted Service
