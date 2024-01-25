@@ -32,6 +32,7 @@ namespace ReportService.Repositories
                 result = await applicationDbContext.HistoryModels
                             .Skip((page - 1) * limit)
                             .Take(limit)
+                            .OrderByDescending(m => m.CreatedAt)
                             .ToListAsync(cancellationToken);
             }
             else
@@ -39,6 +40,7 @@ namespace ReportService.Repositories
                 return await applicationDbContext.HistoryModels.Where(func)
                             .Skip((page - 1) * limit)
                             .Take(limit)
+                            .OrderByDescending(m => m.CreatedAt)
                             .ToListAsync(cancellationToken);
             }
 

@@ -98,6 +98,15 @@ namespace ReportService.Services
                                                 break;
                                             }
                                         }
+                                        else if (row is not null && historyData.FileName.Contains("F.10"))
+                                        {
+                                            loop_continue = await ProcessingBSEGFile(row, historyData.FileName, cancellationToken);
+
+                                            if (!loop_continue)
+                                            {
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
 
@@ -401,6 +410,78 @@ namespace ReportService.Services
             catch (Exception ex)
             {
 
+                logger.Error(nameof(PopulateBSEGQueueService), ex.Message, ex);
+
+                return false;
+            }
+        }
+
+        private async Task<bool> ProcessingF10File(IRow row, string sourceFile, CancellationToken cancellationToken)
+        {
+            try
+            {
+                F10Model model = new F10Model();
+
+                var checkRowExist = await unitOfWork.f10Repository.GetOneByFilter(w => w.GLAccount.Contains(model.GLAccount), cancellationToken);
+
+                if (checkRowExist is null)
+                {
+                    var map = model.MapToDomain();
+                    map.CreatedAt = DateTime.Now;
+                    map.SourceFile = sourceFile;
+                    await unitOfWork.f10Repository.Create(map, cancellationToken);
+                }
+                else
+                {
+                    checkRowExist.UpdatedAt = DateTime.Now;
+                    checkRowExist.SourceFile = sourceFile;
+                    unitOfWork.f10Repository.Update(checkRowExist);
+                }
+
+                await unitOfWork.Save();
+
+                logger.Info(nameof(PopulateBSEGQueueService), "F10 Row data", JsonConvert.SerializeObject(model));
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(nameof(PopulateBSEGQueueService), ex.Message, ex);
+
+                return false;
+            }
+        }
+
+        private async Task<bool> ProcessingMKVGFile(IRow row, string sourceFile, CancellationToken cancellationToken)
+        {
+            try
+            {
+                MKVGModel model = new MKVGModel();
+
+                var checkRowExist = await unitOfWork.mkvgRepository.GetOneByFilter(w => w.Supplier.Equals(model.Supplier) && w.PurchaseOrg.Equals(model.PurchaseOrg), cancellationToken);
+
+                if (checkRowExist is null)
+                {
+                    var map = model.MapToDomain();
+                    map.CreatedAt = DateTime.Now;
+                    map.SourceFile = sourceFile;
+                    await unitOfWork.mkvgRepository.Create(map, cancellationToken);
+                }
+                else
+                {
+                    checkRowExist.UpdatedAt = DateTime.Now;
+                    checkRowExist.SourceFile = sourceFile;
+                    unitOfWork.mkvgRepository.Update(checkRowExist);
+                }
+
+                await unitOfWork.Save();
+
+                logger.Info(nameof(PopulateBSEGQueueService), "MKVG Row data", JsonConvert.SerializeObject(model));
+
+                return true;
+            }
+            catch (Exception ex)
+            {
                 logger.Error(nameof(PopulateBSEGQueueService), ex.Message, ex);
 
                 return false;

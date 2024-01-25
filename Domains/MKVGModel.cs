@@ -29,5 +29,6 @@ namespace ReportService.Domains
         public bool DeleteFlagPurchaseOrg { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+        public string? SourceFile { get; set; }
     }
 }

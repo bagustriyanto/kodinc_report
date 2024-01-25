@@ -8,6 +8,8 @@ namespace ReportService.Repositories.Interfaces
         IHistoryRepository historyRepository { get; }
         IBKPFRepository bkpfRepository { get; }
         IBSEGRepository bsegRepository { get; }
+        IF10Repository f10Repository { get; }
+        IMKVGRepository mkvgRepository { get; }
         Task Save();
     }
 }
